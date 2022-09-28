@@ -1,0 +1,20 @@
+package de.web.spo.ff14.model;
+
+public enum Category {
+    PRESERVED_FOOD,
+    ATTIRE,
+    FOODSTUFFS,
+    CONFECTIONS,
+    SUNDRIES,
+    FURNISHINGS,
+    ARMS,
+    CONCOCTIONS,
+    INGREDIENTS,
+    ACCESSORIES,
+    METALWORKS,
+    WOODWORKS,
+    TEXTILES,
+    CREATURE_CREATIONS,
+    MARINE_MERCHANDISE,
+    UNBURIED_TREASURES;
+}
