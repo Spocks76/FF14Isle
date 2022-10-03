@@ -19,7 +19,7 @@ public class ExcelConfig {
     }
 
     @Bean
-    public XSSFSheet excelSheetCurrentWeek(XSSFWorkbook excelWorkbook) throws IOException, InvalidFormatException {
+    public XSSFSheet excelSheetCurrentWeek(XSSFWorkbook excelWorkbook) {
         return excelWorkbook.getSheet("Week 05");
     }
 

@@ -4,6 +4,7 @@ import de.web.spo.ff14.model.*;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,10 +35,11 @@ public class ExcelService {
     @Bean
     public List<CycleValues> cycleValuesList() {
         int maxCycle;
-        for(maxCycle = 0; excelSheetCurrentWeek.getRow(4).getCell(3 + maxCycle * 2) != null; maxCycle++);
+        for(maxCycle = 0; excelSheetCurrentWeek.getRow(4).getCell(3 + maxCycle * 2) != null
+                && StringUtils.hasText(excelSheetCurrentWeek.getRow(4).getCell(3 + maxCycle * 2).getStringCellValue()); maxCycle++);
         var cycleValuesList = new ArrayList<CycleValues>(maxCycle);
         for(var cycleIndex = 0; cycleIndex < maxCycle; cycleIndex++) {
-            var cycleValues = new CycleValues(new Cycle(cycleIndex+1));
+            var cycleValues = new CycleValues();
             cycleValuesList.add(cycleValues);
             for(var rowIndex = 4; rowIndex < 54; rowIndex++ ) {
                 var row = excelSheetCurrentWeek.getRow(rowIndex);

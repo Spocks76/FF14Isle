@@ -1,8 +1,8 @@
 package de.web.spo.ff14;
 
-import de.web.spo.ff14.model.AgendaCombStats;
-import de.web.spo.ff14.model.ValueAgendaCountList;
+import de.web.spo.ff14.model.CycleCombStats;
 import de.web.spo.ff14.service.AgendaService;
+import de.web.spo.ff14.service.CycleService;
 import de.web.spo.ff14.service.ExcelService;
 import de.web.spo.ff14.service.PatternService;
 import org.springframework.boot.CommandLineRunner;
@@ -14,10 +14,11 @@ import java.util.concurrent.CountDownLatch;
 
 @SpringBootApplication
 public class SpringBootFF14Isle implements CommandLineRunner {
-    public SpringBootFF14Isle(AgendaService agendaService, ExcelService excelService, PatternService patternService) {
+    public SpringBootFF14Isle(AgendaService agendaService, ExcelService excelService, PatternService patternService, CycleService cycleService) {
         this.agendaService = agendaService;
         this.excelService = excelService;
         this.patternService = patternService;
+        this.cycleService = cycleService;
     }
 
     public static void main(String[] args) {
@@ -29,6 +30,8 @@ public class SpringBootFF14Isle implements CommandLineRunner {
     private final ExcelService excelService;
 
     private final PatternService patternService;
+
+    private final CycleService cycleService;
 
 
 
@@ -46,30 +49,29 @@ public class SpringBootFF14Isle implements CommandLineRunner {
         /*
       */
 
-        List<ValueAgendaCountList> valueAgendaCountLists = new ArrayList<>(agendaService.createRandomTopAgendaSet().values());
+
+        var grooveValueAgendaMapMap = agendaService.createRandomTopAgendaSet();
 
         //valueAgendaCountLists.forEach(valueAgendaCountList -> System.out.println(valueAgendaCountList.getValue() + ": " + valueAgendaCountList.getAgendaCountMap().values().stream().map(AgendaCount::getAgenda).map(Agenda::getProductKey).toList()));
 
-        Map<String, AgendaCombStats> agendaCombStatsMap = new Hashtable<>();
+        Map<String, CycleCombStats> cycleCombStatsMap = new Hashtable<>();
 
         CountDownLatch latch = new CountDownLatch(5);
 
-        new Thread(new SimThread(patternService, agendaService, agendaCombStatsMap, valueAgendaCountLists, latch, true)).start();
-        new Thread(new SimThread(patternService, agendaService, agendaCombStatsMap, valueAgendaCountLists, latch, false)).start();
-        new Thread(new SimThread(patternService, agendaService, agendaCombStatsMap, valueAgendaCountLists, latch, false)).start();
-        new Thread(new SimThread(patternService, agendaService, agendaCombStatsMap, valueAgendaCountLists, latch, false)).start();
-        new Thread(new SimThread(patternService, agendaService, agendaCombStatsMap, valueAgendaCountLists, latch, false)).start();
+        new Thread(new SimThread(patternService, cycleService, agendaService, grooveValueAgendaMapMap, latch, cycleCombStatsMap, true)).start();
+        new Thread(new SimThread(patternService, cycleService, agendaService, grooveValueAgendaMapMap, latch, cycleCombStatsMap, false)).start();
+        new Thread(new SimThread(patternService, cycleService, agendaService, grooveValueAgendaMapMap, latch, cycleCombStatsMap, false)).start();
+        new Thread(new SimThread(patternService, cycleService, agendaService, grooveValueAgendaMapMap, latch, cycleCombStatsMap, false)).start();
+        new Thread(new SimThread(patternService, cycleService, agendaService, grooveValueAgendaMapMap, latch, cycleCombStatsMap, false)).start();
 
         latch.await();
 
-        List<AgendaCombStats> combStatsList = new ArrayList<>(agendaCombStatsMap.values());
-        combStatsList.sort(Comparator.comparing(AgendaCombStats::getAvgValue).reversed());
-        combStatsList.subList(0,50).forEach(agendaCombStats -> System.out.println(
-                "Avg: " + agendaCombStats.getAvgValue() + ", Min: " + "(" + agendaCombStats.getMinPercent() + "%) " + agendaCombStats.getMinAgendaComb().getValue() + ", Max: " + "(" + agendaCombStats.getMaxPercent() + "%) " + agendaCombStats.getMaxAgendaComb().getValue() + ", MinCombo: " +  agendaCombStats.getMinAgendaComb().getKey()
-                )
-        );
-
-
-
+        cycleCombStatsMap.values().stream().sorted(Comparator.comparing(CycleCombStats::getAvgValue).reversed()).limit(50).forEach(cycleCombStats -> System.out.println(cycleCombStats.getCycleComb().getMaxAgendaCombStatsSum()
+                + Arrays.stream(cycleCombStats.getCycleComb().getAgendaCombStatsCycles())
+                .filter(Objects::nonNull)
+                .map(agendaCombStats -> agendaCombStats.getMaxAgendaComb().getValue()).toList()
+                .toString()
+                + " --> " + cycleCombStats.getCycleComb().getKey()
+        ));
     }
 }

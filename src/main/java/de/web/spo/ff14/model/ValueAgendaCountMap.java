@@ -6,11 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Getter
-public class ValueAgendaCountList {
+public class ValueAgendaCountMap {
     private final Integer value;
     private final Map<String, AgendaCount> agendaCountMap = new HashMap<>();
 
-    public ValueAgendaCountList(Integer value) {
+    public ValueAgendaCountMap(Integer value) {
         this.value = value;
     }
 

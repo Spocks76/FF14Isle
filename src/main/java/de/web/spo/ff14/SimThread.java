@@ -1,51 +1,51 @@
 package de.web.spo.ff14;
 
-import de.web.spo.ff14.model.AgendaCombStats;
-import de.web.spo.ff14.model.ValueAgendaCountList;
+import de.web.spo.ff14.model.*;
 import de.web.spo.ff14.service.AgendaService;
+import de.web.spo.ff14.service.CycleService;
 import de.web.spo.ff14.service.PatternService;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Stream;
 
 public class SimThread implements Runnable{
 
     private final PatternService patternService;
+    private final CycleService cycleService;
+
     private final AgendaService agendaService;
-    private final Map<String, AgendaCombStats> agendaCombStatsMap;
-    private final List<ValueAgendaCountList> valueAgendaCountLists;
+
+    private final Map<Integer, GrooveValueAgendaMap> grooveValueAgendaMapMap;
     private final CountDownLatch latch;
+
+    private final Map<String, CycleCombStats> cycleCombStatsMap;
 
     private final boolean truncStats;
 
-    public SimThread(PatternService patternService, AgendaService agendaService, Map<String, AgendaCombStats> agendaCombStatsMap, List<ValueAgendaCountList> valueAgendaCountLists, CountDownLatch latch, boolean truncStats) {
+    public SimThread(PatternService patternService, CycleService cycleService, AgendaService agendaService, Map<Integer, GrooveValueAgendaMap> grooveValueAgendaMapMap, CountDownLatch latch, Map<String, CycleCombStats> cycleCombStatsMap, boolean truncStats) {
         this.patternService = patternService;
+        this.cycleService = cycleService;
         this.agendaService = agendaService;
-        this.agendaCombStatsMap = agendaCombStatsMap;
-        this.valueAgendaCountLists = valueAgendaCountLists;
+        this.grooveValueAgendaMapMap = grooveValueAgendaMapMap;
         this.latch = latch;
+        this.cycleCombStatsMap = cycleCombStatsMap;
         this.truncStats = truncStats;
     }
 
     @Override
     public void run() {
-        for(int i0 = 0; i0<10000; i0++) {
-            var cycleValuePatternMap = patternService.getRandomWeeklyCycleValuePatternMap();
-            for (var i = 0; i < 1000; i++) {
-                var agendaComb = agendaService.createRandomAgendaComb(valueAgendaCountLists, cycleValuePatternMap, 2, 9);
-                agendaCombStatsMap.computeIfAbsent(agendaComb.getKey(), agendaCombKey -> new AgendaCombStats()).addAgendaComb(agendaComb);
-                if(truncStats && agendaCombStatsMap.size()>1000) {
-                    List<AgendaCombStats> combStatsList = new ArrayList<>(agendaCombStatsMap.values());
-                    combStatsList.sort(Comparator.comparing(AgendaCombStats::getMaxValue).reversed());
-                    for(int i2=900; i2<1000; i2++) {
-                        agendaCombStatsMap.remove(combStatsList.get(i2).getMinAgendaComb().getKey());
-                    }
-                }
-            }
-        }
+        var productCountMap =  new Hashtable<Product, Integer>();
+        Stream.generate(patternService::getRandomWeeklyCycleValuePatternMap)
+                .limit(1)
+                .forEach(cycleValuePatternMap -> {
+                            var valueAgendaCountMaps = agendaService.resortTopAgendaSetForCyclePattern(grooveValueAgendaMapMap, cycleValuePatternMap, productCountMap, 1);
+                            Stream.generate(() -> cycleService.createRandomCycleComb(cycleValuePatternMap, new Hashtable<>(productCountMap), valueAgendaCountMaps, 2, 0, false))
+                                    .limit(1000)
+                                    .forEach(cycleComb -> cycleCombStatsMap.computeIfAbsent(cycleComb.getKey(), cycleCombKey -> new CycleCombStats()).addCycleComb(cycleComb));
+                        }
+                );
+
         latch.countDown();
     }
 }

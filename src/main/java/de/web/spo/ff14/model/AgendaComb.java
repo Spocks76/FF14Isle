@@ -1,6 +1,8 @@
 package de.web.spo.ff14.model;
 
-public record AgendaComb(Groover groover, Agenda agenda1, Agenda agenda2, Agenda agenda3) {
+import java.util.Map;
+
+public record AgendaComb(Groover groover, Agenda agenda1, Agenda agenda2, Agenda agenda3, Map<Product, Integer> productCountMap) {
     public int getValue() {
         return agenda1().getValue() + agenda2.getValue() + agenda3().getValue();
     }

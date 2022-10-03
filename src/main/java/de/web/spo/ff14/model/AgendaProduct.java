@@ -16,11 +16,14 @@ public class AgendaProduct {
 
     private final int groove;
 
-    public AgendaProduct(Product productBefore, Product product, Popularity popularity, Supply supply, int groove) {
+    private final int produced;
+
+    public AgendaProduct(Product productBefore, Product product, Popularity popularity, Supply supply, int groove, int produced) {
         this.product = product;
         this.popularity = popularity;
         this.supply = supply;
         this.groove = groove;
+        this.produced = produced;
         if(productBefore != null && !product.equals(productBefore)) {
             product.getCategories().forEach(category -> {
                 if(productBefore.getCategories().contains(category)) {
@@ -31,6 +34,13 @@ public class AgendaProduct {
     }
 
     public double getValue() {
+        var supply = this.supply;
+        if(produced > 7) {
+            supply = Supply.values()[supply.ordinal()+1];
+        }
+        if(produced > 15) {
+            supply = Supply.values()[supply.ordinal()+1];
+        }
         return Math.floor(popularity.getModifier() * supply.getModifier() * Math.floor(product.getValue() * 1.2 * (1 + groove / 100.0))) * efficiencyBonus;
     }
 }

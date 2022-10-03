@@ -1,7 +1,7 @@
 package de.web.spo.ff14.model;
 
 public record CycleValue(Supply supply, DemandShift demandShift) {
-    public String getPatternKey(int cycleNumber, int cycleNumberMax) {
+    public String getPatternKey(int cycleNumber) {
         return switch(cycleNumber) {
             case 1 -> this.supply().getName();
             case 2 -> switch (this.supply()) {

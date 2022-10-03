@@ -24,4 +24,9 @@ public class Groover {
         return grooves[hour];
     }
 
+    public int getLastGroove() {
+
+        return getGroove(23);
+    }
+
 }
