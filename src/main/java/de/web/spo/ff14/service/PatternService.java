@@ -34,6 +34,10 @@ public class PatternService {
 
             var patternKey = CycleValuePattern.getPatternKeyUntil(maxCycle, cycleValueList);
             var cycleValuePatternList = cycleValuePatternListMap2.get(patternKey);
+            if(cycleValuePatternList == null || cycleValuePatternList.cycleValuePatternList().size() == 0) {
+                patternKey = CycleValuePattern.getAltPatternKeyUntil(maxCycle, cycleValueList);
+                cycleValuePatternList = cycleValuePatternListMap2.get(patternKey);
+            }
             var cycleValuePattern = cycleValuePatternList.cycleValuePatternList().get(rand.nextInt(cycleValuePatternList.cycleValuePatternList().size()));
             cycleValuePatternList.cycleValuePatternList().remove(cycleValuePattern);
             cycleValuePatternMap.put(product, cycleValuePattern);

@@ -13,4 +13,13 @@ public record CycleValuePattern(List<CycleValue> cycleValueList, int count) {
         return stringBuilder.toString();
     }
 
+    public static String getAltPatternKeyUntil(int cycleNumber, List<CycleValue> cycleValueList) {
+        var stringBuilder = new StringBuilder(cycleValueList.get(0).getAltPatternKey(1));
+        for(int i=1; i<cycleNumber; i++) {
+            stringBuilder.append(",");
+            stringBuilder.append(cycleValueList.get(i).getAltPatternKey(i+1));
+        }
+        return stringBuilder.toString();
+    }
+
 }

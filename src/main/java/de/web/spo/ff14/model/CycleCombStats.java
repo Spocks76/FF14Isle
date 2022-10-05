@@ -34,5 +34,9 @@ public class CycleCombStats {
     public int getAvgValue() {
         return (int) (sumAvgCycleCombValue / countCycleComb);
     }
+
+    public int getMaxValue() {
+        return cycleComb.getMaxAgendaCombStatsSum();
+    }
 }
 

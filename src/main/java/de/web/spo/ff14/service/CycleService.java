@@ -25,19 +25,22 @@ public class CycleService {
             return;
         }
 
-        Map<String, AgendaCombStats> agendaCombStatsMap = new Hashtable<>();
+        Map<Integer, Map<String, AgendaCombStats>> grooveAgendaCombStatsMap = new Hashtable<>();
         Stream.generate(() -> agendaService.createRandomAgendaComb(valueAgendaCountMaps.get(cycle-1), cycleComb.getCycleValuePatternMap(), new Hashtable<>(cycleComb.getProductCountMap()), cycle, groove))
-                .limit(10000)
-                .forEach(agendaComb -> agendaCombStatsMap.computeIfAbsent(agendaComb.getKey(), agendaCombKey -> new AgendaCombStats()).addAgendaComb(agendaComb));
+                .limit(1000)
+                .forEach(agendaComb -> grooveAgendaCombStatsMap.computeIfAbsent(agendaComb.groover().getLastGroove(), lastGroove -> new Hashtable<>())
+                        .computeIfAbsent(agendaComb.getKey(), agendaCombKey -> new AgendaCombStats()).addAgendaComb(agendaComb));
 
-        agendaCombStatsMap.values().stream()
-                .sorted(Comparator.comparing(AgendaCombStats::getAvgValue).reversed())
-                .skip(rand.nextInt(5))
-                .findFirst()
-                .ifPresent(agendaCombStats -> {
-                    cycleComb.addAgendaCombStats(cycle, agendaCombStats);
-                    this.createRandomAgendaCombs(valueAgendaCountMaps, cycleComb, cycle + 1,  agendaCombStats.getMaxAgendaComb().groover().getGroove(20), freeDayDone);
-                });
+        List<AgendaCombStats> agendaCombStatsList = new ArrayList<>();
+        grooveAgendaCombStatsMap.values()
+                .forEach(agendaCombatStatsMap -> agendaCombatStatsMap.values().stream().sorted(Comparator.comparing(AgendaCombStats::getAvgValue).reversed())
+                                .limit(1)
+                                .forEach(agendaCombStatsList::add)
+                );
+        var agendaCombStats = agendaCombStatsList.get(rand.nextInt(agendaCombStatsList.size()));
+        cycleComb.addAgendaCombStats(cycle, agendaCombStats);
+        this.createRandomAgendaCombs(valueAgendaCountMaps, cycleComb, cycle + 1,  agendaCombStats.getAgendaComb().groover().getLastGroove(), freeDayDone);
+
     }
     public CycleComb createRandomCycleComb(Map<Product, CycleValuePattern> cycleValuePatternMap, Map<Product, Integer> productCountMap, Map<Integer, List<ValueAgendaCountMap>> valueAgendaCountMaps, int cycleStart, int grooveStart, boolean freedayDone) {
         CycleComb cycleComb = new CycleComb(cycleValuePatternMap, new Hashtable<>(productCountMap));

@@ -25,8 +25,7 @@ public class Groover {
     }
 
     public int getLastGroove() {
-
-        return getGroove(23);
+        return getGroove(20);
     }
 
 }

@@ -35,12 +35,21 @@ public class SimThread implements Runnable{
 
     @Override
     public void run() {
-        var productCountMap =  new Hashtable<Product, Integer>();
+        /*var productCountMap =  Map.of(Product.CORN_FLAKES, 6, Product.PICKLED_RADISH, 8, Product.GROWTH_FORMULA, 4, Product.FIRESAND, 3, Product.BOILED_EGG, 3, Product.SHEEPFLUFF_RUG, 12, Product.BED, 6);
+        var cycleStart = 4;
+        var grooveStart = 18;
+        var freeDayDone = false;*/
+
+        var productCountMap = new HashMap<Product, Integer>();
+        var cycleStart = 3;
+        var grooveStart = 0;
+        var freeDayDone = true;
+
         Stream.generate(patternService::getRandomWeeklyCycleValuePatternMap)
-                .limit(1)
+                .limit(100)
                 .forEach(cycleValuePatternMap -> {
-                            var valueAgendaCountMaps = agendaService.resortTopAgendaSetForCyclePattern(grooveValueAgendaMapMap, cycleValuePatternMap, productCountMap, 1);
-                            Stream.generate(() -> cycleService.createRandomCycleComb(cycleValuePatternMap, new Hashtable<>(productCountMap), valueAgendaCountMaps, 2, 0, false))
+                            var valueAgendaCountMaps = agendaService.resortTopAgendaSetForCyclePattern(grooveValueAgendaMapMap, cycleValuePatternMap, productCountMap, cycleStart - 1);
+                            Stream.generate(() -> cycleService.createRandomCycleComb(cycleValuePatternMap, new Hashtable<>(productCountMap), valueAgendaCountMaps, cycleStart, grooveStart, freeDayDone))
                                     .limit(1000)
                                     .forEach(cycleComb -> cycleCombStatsMap.computeIfAbsent(cycleComb.getKey(), cycleCombKey -> new CycleCombStats()).addCycleComb(cycleComb));
                         }

@@ -129,7 +129,7 @@ public class AgendaService {
                     grooveValueAgendaMapMapOld.values().forEach(grooveValueAgendaMap -> grooveValueAgendaMap.getValueAgendaCountMap().values().forEach(valueAgendaCountMap -> valueAgendaCountMap.getAgendaCountMap().values()
                             .forEach(agendaCount -> {
                                 var agenda = recreateTopAgendaFromTemplate(cycleValuePatternMap, productCountMap, cycleIndex, 0, agendaCount.getAgenda());
-                                grooveValueAgendaMapMap.computeIfAbsent(agenda.getGroover().getLastGroove(), groove -> new GrooveValueAgendaMap(groove, 1)).addAgenda(agenda);
+                                grooveValueAgendaMapMap.computeIfAbsent(agenda.getGroover().getLastGroove(), groove -> new GrooveValueAgendaMap(groove, 2)).addAgenda(agenda);
                             })));
                     List<ValueAgendaCountMap> valueAgendaCountMaps = new ArrayList<>();
                     grooveValueAgendaMapMap.values().forEach(grooveValueAgendaMap -> valueAgendaCountMaps.addAll(grooveValueAgendaMap.getValueAgendaCountMap().values()));
