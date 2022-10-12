@@ -42,7 +42,7 @@ public class CycleService {
         this.createRandomAgendaCombs(valueAgendaCountMaps, cycleComb, cycle + 1,  agendaCombStats.getAgendaComb().groover().getLastGroove(), freeDayDone);
 
     }
-    public CycleComb createRandomCycleComb(Map<Product, CycleValuePattern> cycleValuePatternMap, Map<Product, Integer> productCountMap, Map<Integer, List<ValueAgendaCountMap>> valueAgendaCountMaps, int cycleStart, int grooveStart, boolean freedayDone) {
+    public CycleComb createRandomCycleComb(Map<Product, CycleValueStatsList> cycleValuePatternMap, Map<Product, Integer> productCountMap, Map<Integer, List<ValueAgendaCountMap>> valueAgendaCountMaps, int cycleStart, int grooveStart, boolean freedayDone) {
         CycleComb cycleComb = new CycleComb(cycleValuePatternMap, new Hashtable<>(productCountMap));
         this.createRandomAgendaCombs(valueAgendaCountMaps, cycleComb, cycleStart, grooveStart, freedayDone);
         return cycleComb;

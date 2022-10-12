@@ -41,6 +41,6 @@ public class AgendaProduct {
         if(produced > 15) {
             supply = Supply.values()[supply.ordinal()+1];
         }
-        return Math.floor(popularity.getModifier() * supply.getModifier() * Math.floor(product.getValue() * 1.2 * (1 + groove / 100.0))) * efficiencyBonus;
+        return Math.floor(popularity.getModifier() * 100 * supply.getModifier() * 100 * Math.floor(product.getValue() * 1.2 * (1.0 + groove / 100.0)) / 10000) * efficiencyBonus;
     }
 }

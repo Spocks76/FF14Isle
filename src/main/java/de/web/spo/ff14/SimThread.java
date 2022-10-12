@@ -4,12 +4,17 @@ import de.web.spo.ff14.model.*;
 import de.web.spo.ff14.service.AgendaService;
 import de.web.spo.ff14.service.CycleService;
 import de.web.spo.ff14.service.PatternService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 public class SimThread implements Runnable{
+
+    private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
     private final PatternService patternService;
     private final CycleService cycleService;
@@ -40,10 +45,13 @@ public class SimThread implements Runnable{
         var grooveStart = 18;
         var freeDayDone = false;*/
 
-        var productCountMap = new HashMap<Product, Integer>();
+        //var productCountMap = Map.of(Product.NECKLACE, 9, Product.SPRUCE_ROUND_SHIELD, 12, Product.TOMATO_RELISH, 3, Product.BUTTER, 12, Product.SHEEPFLUFF_RUG, 12);
+        var productCountMap = Map.of(Product.CULINARY_KNIFE, 3, Product.BUTTER, 6, Product.SQUID_INK, 6, Product.ISLEFISH_PIE, 6, Product.CARAMELS, 6);
+        //var productCountMap = new Hashtable<Product, Integer>();
         var cycleStart = 3;
-        var grooveStart = 0;
-        var freeDayDone = true;
+        var grooveStart = 12;
+        var freeDayDone = false;
+        AtomicInteger i = new AtomicInteger();
 
         Stream.generate(patternService::getRandomWeeklyCycleValuePatternMap)
                 .limit(100)
@@ -52,6 +60,14 @@ public class SimThread implements Runnable{
                             Stream.generate(() -> cycleService.createRandomCycleComb(cycleValuePatternMap, new Hashtable<>(productCountMap), valueAgendaCountMaps, cycleStart, grooveStart, freeDayDone))
                                     .limit(1000)
                                     .forEach(cycleComb -> cycleCombStatsMap.computeIfAbsent(cycleComb.getKey(), cycleCombKey -> new CycleCombStats()).addCycleComb(cycleComb));
+                            if(truncStats) {
+                                if(cycleCombStatsMap.size() > 1000) {
+                                    var cnt = cycleCombStatsMap.size() - 1000;
+                                    new ArrayList<>(cycleCombStatsMap.values()).stream().sorted(Comparator.comparing(CycleCombStats::getMaxValue))
+                                            .limit(cnt).forEach(cycleCombStats -> cycleCombStatsMap.remove(cycleCombStats.getCycleComb().getKey()));
+                                }
+                                LOGGER.info(i.getAndIncrement()+"%, "+cycleCombStatsMap.size());
+                            }
                         }
                 );
 

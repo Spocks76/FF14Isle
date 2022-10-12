@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @SpringBootApplication
@@ -49,12 +50,13 @@ public class SpringBootFF14Isle implements CommandLineRunner {
         latch.await();
 
         cycleCombStatsMap.values().stream().sorted(Comparator.comparing(CycleCombStats::getMaxValue).reversed())
-                .limit(100)
+                .limit(50)
                 .forEach(cycleCombStats -> System.out.println(cycleCombStats.getCountCycleComb() + " : " + cycleCombStats.getCycleComb().getMaxAgendaCombStatsSum()
                         + Arrays.stream(cycleCombStats.getCycleComb().getAgendaCombStatsCycles())
                         .filter(Objects::nonNull)
-                        .map(agendaCombStats -> agendaCombStats.getCountMaxAgendaComb() + ":" + agendaCombStats.getMaxAgendaComb().getValue()).toList()
+                        .map(agendaCombStats -> agendaCombStats.getMinAgendaComb().getPercentage() + "%:" + agendaCombStats.getMinAgendaComb().getValue() + "|" + agendaCombStats.getMaxAgendaComb().getPercentage() + "%:" + agendaCombStats.getMaxAgendaComb().getValue()).toList()
                         + " --> " + cycleCombStats.getCycleComb().getKey()
+                        + " {" + cycleCombStats.getCycleComb().getProductCountMap().entrySet().stream().map(productIntegerEntry -> productIntegerEntry.getKey().getName() + "=" + productIntegerEntry.getValue()).collect(Collectors.joining(", ")) + "} "
         ));
     }
 }

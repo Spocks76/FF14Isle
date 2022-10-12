@@ -13,15 +13,16 @@ public class Agenda {
     private final List<AgendaProduct> productList = new ArrayList<>();
     private Product lastProduct;
     private final Groover groover;
-
     private final ProductLog productLog;
     private final StringBuffer productKey = new StringBuffer();
     private final Map<Integer, Product> productMap = new HashMap<>();
+
+    private final Map<Product, Integer> percentageMap = new HashMap<>();
     public Agenda(Groover groover, ProductLog productLog) {
         this.groover = groover;
         this.productLog = productLog;
     }
-    public void addProduct(Product product, Popularity popularity, Supply supply, int produced) {
+    public void addProduct(Product product, Popularity popularity, Supply supply, int produced, int percentage) {
         if(hour + product.getDuration() > 24) {
             return;
         }
@@ -31,6 +32,7 @@ public class Agenda {
         groover.addProduct(hour + product.getDuration() - 1);
         productLog.addProduct(hour + product.getDuration() - 1, product, agendaProduct.getEfficiencyBonus());
         productMap.put(hour, product);
+        percentageMap.put(product, percentage);
         hour +=product.getDuration();
         lastProduct=product;
         value+=agendaProduct.getValue();
