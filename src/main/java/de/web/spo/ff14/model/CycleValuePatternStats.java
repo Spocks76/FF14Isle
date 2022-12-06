@@ -17,7 +17,21 @@ public class CycleValuePatternStats {
 
     public void addPattern(Supply supply) {
         count++;
-        supplyCounterMap.merge(supply, 1, Integer::sum);
+        switch(supply) {
+            case NONEXISTENT -> {
+                supplyCounterMap.merge(Supply.NONEXISTENT, 1, Integer::sum);
+                supplyCounterMap.merge(Supply.INSUFFICIENT, 1, Integer::sum);
+                supplyCounterMap.merge(Supply.SUFFICIENT, 1, Integer::sum);
+            }
+            case INSUFFICIENT -> {
+                supplyCounterMap.merge(Supply.INSUFFICIENT, 1, Integer::sum);
+                supplyCounterMap.merge(Supply.SUFFICIENT, 1, Integer::sum);
+            }
+            case SUFFICIENT -> {
+                supplyCounterMap.merge(Supply.SUFFICIENT, 1, Integer::sum);
+            }
+        }
+
     }
 
     public int getPercentage(Supply supply) {

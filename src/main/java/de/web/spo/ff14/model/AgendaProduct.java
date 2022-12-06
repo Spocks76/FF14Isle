@@ -12,16 +12,16 @@ public class AgendaProduct {
 
     private final Popularity popularity;
 
-    private final Supply supply;
+    private final int supplyValue;
 
     private final int groove;
 
     private final int produced;
 
-    public AgendaProduct(Product productBefore, Product product, Popularity popularity, Supply supply, int groove, int produced) {
+    public AgendaProduct(Product productBefore, Product product, Popularity popularity, int supplyValue, int groove, int produced) {
         this.product = product;
         this.popularity = popularity;
-        this.supply = supply;
+        this.supplyValue = supplyValue;
         this.groove = groove;
         this.produced = produced;
         if(productBefore != null && !product.equals(productBefore)) {
@@ -34,13 +34,11 @@ public class AgendaProduct {
     }
 
     public double getValue() {
-        var supply = this.supply;
-        if(produced > 7) {
-            supply = Supply.values()[supply.ordinal()+1];
-        }
-        if(produced > 15) {
-            supply = Supply.values()[supply.ordinal()+1];
-        }
+        var supply = Supply.valueOf(this.supplyValue + produced);
         return Math.floor(popularity.getModifier() * 100 * supply.getModifier() * 100 * Math.floor(product.getValue() * 1.2 * (1.0 + groove / 100.0)) / 10000) * efficiencyBonus;
+        /*if(this.supplyValue != 0 && this.product.equals(Product.CORN_FLAKES)) {
+            System.out.println(this.product + " " + supplyValue + " " + produced + " " + popularity + "(" + popularity.getModifier() + ") " + supply + "(" + supply.getModifier() + ") " + groove + " " + value);
+        }
+        return value;*/
     }
 }

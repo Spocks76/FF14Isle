@@ -49,7 +49,7 @@ public class ExcelService {
                 var product = Product.productMap.get(productName);
                 var supply = Supply.supplyMap.get(supplyName);
                 var shift = DemandShift.demandShiftMap.get(shiftName);
-                cycleValues.addCycleValue(product, new CycleValue(supply, shift));
+                cycleValues.addCycleValue(product, new CycleValue(supply, shift, 0));
             }
         }
         return cycleValuesList;

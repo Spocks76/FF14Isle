@@ -1,7 +1,8 @@
 package de.web.spo.ff14.service;
 
 import de.web.spo.ff14.model.*;
-import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -9,8 +10,11 @@ import java.util.stream.Stream;
 
 @Service
 public class PatternService {
+
+    private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
+
     private final List<CycleValues> cycleValuesList;
-    private final Random rand = new Random();
+    private final Random rand = new Random(System.currentTimeMillis());
 
     private final Map<Product, Map<Integer, CycleValuePatternStats>> patternSupplyPercentageMap = new HashMap<>();
     private final Map<String, Map<Integer, Set<Product>>> productDistributionMap = new HashMap<>();
@@ -25,6 +29,7 @@ public class PatternService {
         var cycleValuePatternListMap = CycleValuePatternList.cycleValuePatternMap.get(maxCycle-1);
         Product.productMap.values().forEach(product -> {
             var cycleValuePatternList = getCycleValuePatternList(maxCycle, product, cycleValuePatternListMap);
+
             cycleValuePatternList.cycleValuePatternList().forEach(cycleValuePattern ->
                     Stream.iterate(1, cycle -> cycle + 1).limit(7)
                             .forEach(cycle -> {
@@ -56,6 +61,10 @@ public class PatternService {
         if(cycleValuePatternList == null || cycleValuePatternList.cycleValuePatternList().size() == 0) {
             patternKey = CycleValuePattern.getAltPatternKeyUntil(maxCycle, cycleValueList);
             cycleValuePatternList = cycleValuePatternListMap.get(patternKey);
+        }
+
+        if(cycleValuePatternList == null) {
+            LOGGER.error("Cannot find Pattern for product {} with pattern key {}", product.getName(), patternKey);
         }
         return cycleValuePatternList;
     }

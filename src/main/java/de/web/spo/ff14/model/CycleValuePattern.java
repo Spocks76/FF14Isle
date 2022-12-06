@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-public record CycleValuePattern(List<CycleValue> cycleValueList, int count) {
+public record CycleValuePattern(List<CycleValue> cycleValueList, int count, String peak) {
 
     public static String getPatternKeyUntil(int cycleNumber, List<CycleValue> cycleValueList) {
         var stringBuilder = new StringBuilder(cycleValueList.get(0).getPatternKey(1));
@@ -29,10 +29,10 @@ public record CycleValuePattern(List<CycleValue> cycleValueList, int count) {
         Stream.iterate(1, cycleNumber -> cycleNumber + 1).limit(7).forEach(cycleNumber -> {
             var cycleValuePattern = cycleValueList.get(cycleNumber -1);
             var cycleValueStats = CycleValuePatternList.patternSupplyPercentageMap.get(patternKey).get(cycleNumber);
-            var cycleValue = new CycleValue(cycleValuePattern.supply(), cycleValuePattern.demandShift());
+            var cycleValue = new CycleValue(cycleValuePattern.supply(), cycleValuePattern.demandShift(), cycleValuePattern.supplyValue());
             cycleValueStatsList.add(new CycleValueStats(cycleValue, cycleValueStats));
         });
-        return new CycleValueStatsList(cycleValueStatsList);
+        return new CycleValueStatsList(cycleValueStatsList, peak());
     }
 
 }

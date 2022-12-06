@@ -1,6 +1,6 @@
 package de.web.spo.ff14.model;
 
-public record CycleValue(Supply supply, DemandShift demandShift) {
+public record CycleValue(Supply supply, DemandShift demandShift, int supplyValue) {
     public String getPatternKey(int cycleNumber) {
         return switch(cycleNumber) {
             case 1 -> this.supply().getName() + (this.supply().equals(Supply.INSUFFICIENT) && this.demandShift.equals(DemandShift.INCREASING) ? "-" + this.demandShift().getName() : "");

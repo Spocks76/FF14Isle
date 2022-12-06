@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 @Service
 public class AgendaService {
@@ -45,11 +46,13 @@ public class AgendaService {
         }
         if(availableProducts.size() > 0 && cycleIndex >= 0) {
             var product = availableProducts.get(rand.nextInt(availableProducts.size()));
-            var cycleValueStats = cycleValuePatternMap != null ? cycleValuePatternMap.get(product).cycleValueStatsList().get(cycleIndex) : new CycleValueStats(new CycleValue(Supply.SUFFICIENT, DemandShift.NONE), new CycleValuePatternStats(""));
+            var cycleValueStats = cycleValuePatternMap != null ? cycleValuePatternMap.get(product).cycleValueStatsList().get(cycleIndex) : new CycleValueStats(new CycleValue(Supply.SUFFICIENT, DemandShift.NONE, 0), new CycleValuePatternStats(""));
+            var peak =  cycleValuePatternMap != null ? cycleValuePatternMap.get(product).peak():"";
             var produced = productCountMap.getOrDefault(product, 0);
-            var supply =  cycleValueStats.cycleValue().supply();
+            var supply = cycleValueStats.cycleValue().supply();
+            var supplyValue =  cycleValueStats.cycleValue().supplyValue();
             var cycleValuePatternStats = this.patternService.getCycleValuePatternStats(cycleIndex+1, product);
-            agenda.addProduct(product, weeklyProducts.getProducts().get(product), supply, produced, cycleValuePatternStats.getPercentage(supply));
+            agenda.addProduct(product, weeklyProducts.getProducts().get(product), supplyValue, produced, cycleValuePatternStats.getPercentage(supply), peak);
         }
     }
 
@@ -60,11 +63,13 @@ public class AgendaService {
 
         var product = templateAgenda.getProductMap().get(hour);
         if(product != null) {
-            var cycleValueStats = cycleValuePatternMap != null ? cycleValuePatternMap.get(product).cycleValueStatsList().get(cycleIndex) : new CycleValueStats(new CycleValue(Supply.SUFFICIENT, DemandShift.NONE), new CycleValuePatternStats(""));
+            var cycleValueStats = cycleValuePatternMap != null ? cycleValuePatternMap.get(product).cycleValueStatsList().get(cycleIndex) : new CycleValueStats(new CycleValue(Supply.SUFFICIENT, DemandShift.NONE, 0), new CycleValuePatternStats(""));
+            var peak =  cycleValuePatternMap != null ? cycleValuePatternMap.get(product).peak():"";
             var produced = productCountMap.getOrDefault(product, 0);
             var supply =  cycleValueStats.cycleValue().supply();
+            var supplyValue =  cycleValueStats.cycleValue().supplyValue();
             var cycleValuePatternStats = this.patternService.getCycleValuePatternStats(cycleIndex+1, product);
-            agenda.addProduct(product, weeklyProducts.getProducts().get(product), cycleValueStats.cycleValue().supply(), produced, cycleValuePatternStats.getPercentage(supply));
+            agenda.addProduct(product, weeklyProducts.getProducts().get(product), supplyValue, produced, cycleValuePatternStats.getPercentage(supply), peak);
         }
     }
     private Agenda getRandomAgendaFromList(List<ValueAgendaCountMap> valueAgendaCountMaps) {
@@ -99,10 +104,12 @@ public class AgendaService {
         var agenda = new Agenda(new Groover(startGroove), new ProductLog());
         agendaTemplate.getProductList().forEach(agendaProduct -> {
             var product = agendaProduct.getProduct();
-            var cycleValueStats = cycleValuePatternMap != null ? cycleValuePatternMap.get(product).cycleValueStatsList().get(cycleIndex) : new CycleValueStats(new CycleValue(Supply.SUFFICIENT, DemandShift.NONE), new CycleValuePatternStats(""));
+            var cycleValueStats = cycleValuePatternMap != null ? cycleValuePatternMap.get(product).cycleValueStatsList().get(cycleIndex) : new CycleValueStats(new CycleValue(Supply.SUFFICIENT, DemandShift.NONE, 0), new CycleValuePatternStats(""));
+            var peak =  cycleValuePatternMap != null ? cycleValuePatternMap.get(product).peak():"";
             var produced = productCountMap.getOrDefault(product, 0);
             var supply = cycleValueStats.cycleValue().supply();
-            agenda.addProduct(product, weeklyProducts.getProducts().get(product), supply, produced, cycleValueStats.cycleValuePatternStats().getPercentage(supply));
+            var supplyValue = cycleValueStats.cycleValue().supplyValue();
+            agenda.addProduct(product, weeklyProducts.getProducts().get(product), supplyValue, produced, cycleValueStats.cycleValuePatternStats().getPercentage(supply), peak);
         });
         return agenda;
     }
@@ -110,7 +117,7 @@ public class AgendaService {
     public Agenda createRandomAgenda(Map<Product, CycleValueStatsList> cycleValuePatternMap, Map<Product, Integer> productCountMap, int cycleIndex) {
         var agenda = new Agenda(new Groover(0), new ProductLog());
         Stream.iterate(0, hour -> hour + 2)
-                .limit(10)
+                .limit(11)
                 .forEach(hour -> addProductToAgenda(cycleValuePatternMap, productCountMap, cycleIndex, agenda, hour));
         return agenda;
     }
@@ -118,7 +125,7 @@ public class AgendaService {
     private void addRandomTopAgendaSet(Map<Integer, GrooveValueAgendaMap> grooveValueAgendaMapMap, Map<Product, Integer> productCountMap) {
         Stream.generate(() -> createRandomAgenda(null, productCountMap, 0))
                 .limit(1000000)
-                .forEach(agenda -> grooveValueAgendaMapMap.computeIfAbsent(agenda.getGroover().getLastGroove(), groove -> new GrooveValueAgendaMap(groove, 200)).addAgenda(agenda));
+                .forEach(agenda -> grooveValueAgendaMapMap.computeIfAbsent(agenda.getGroover().getLastGroove(), groove -> new GrooveValueAgendaMap(groove, 1000)).addAgenda(agenda));
     }
 
     public Map<Integer, GrooveValueAgendaMap> createRandomTopAgendaSet() {
@@ -136,7 +143,7 @@ public class AgendaService {
                     grooveValueAgendaMapMapOld.values().forEach(grooveValueAgendaMap -> grooveValueAgendaMap.getValueAgendaCountMap().values().forEach(valueAgendaCountMap -> valueAgendaCountMap.getAgendaCountMap().values()
                             .forEach(agendaCount -> {
                                 var agenda = recreateTopAgendaFromTemplate(cycleValuePatternMap, productCountMap, cycleIndex, 0, agendaCount.getAgenda());
-                                grooveValueAgendaMapMap.computeIfAbsent(agenda.getGroover().getLastGroove(), groove -> new GrooveValueAgendaMap(groove, 2)).addAgenda(agenda);
+                                grooveValueAgendaMapMap.computeIfAbsent(agenda.getGroover().getLastGroove(), groove -> new GrooveValueAgendaMap(groove, 5)).addAgenda(agenda);
                             })));
                     List<ValueAgendaCountMap> valueAgendaCountMaps = new ArrayList<>();
                     grooveValueAgendaMapMap.values().forEach(grooveValueAgendaMap -> valueAgendaCountMaps.addAll(grooveValueAgendaMap.getValueAgendaCountMap().values()));

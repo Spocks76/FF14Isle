@@ -34,7 +34,7 @@ public class CycleService {
         List<AgendaCombStats> agendaCombStatsList = new ArrayList<>();
         grooveAgendaCombStatsMap.values()
                 .forEach(agendaCombatStatsMap -> agendaCombatStatsMap.values().stream().sorted(Comparator.comparing(AgendaCombStats::getAvgValue).reversed())
-                                .limit(1)
+                                .limit(5)
                                 .forEach(agendaCombStatsList::add)
                 );
         var agendaCombStats = agendaCombStatsList.get(rand.nextInt(agendaCombStatsList.size()));

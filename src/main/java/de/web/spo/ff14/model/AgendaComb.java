@@ -12,6 +12,10 @@ public record AgendaComb(Groover groover, Agenda agenda1, Agenda agenda2, Agenda
         return agenda1().getProductKey().toString()+agenda2().getProductKey().toString()+agenda3.getProductKey().toString();
     }
 
+    public String getKey2() {
+        return agenda1().getProductKey2().toString();
+    }
+
     public int getPercentage() {
         var percentageMap = new Hashtable<>(agenda1.getPercentageMap());
         percentageMap.putAll(agenda2.getPercentageMap());

@@ -15,12 +15,38 @@ public class CycleCombStats {
     private long countMaxCycleComb = 0;
     private long sumAvgCycleCombValue = 0;
 
+    private CycleComb getMinCycleComb(CycleComb cycleComb1, CycleComb cycleComb2) {
+        if(cycleComb1 == null) {
+            return cycleComb2;
+        }
+        if(cycleComb2 == null) {
+            return cycleComb1;
+        }
+        if(cycleComb1.getMinAgendaCombStatsSum() <= cycleComb2.getMinAgendaCombStatsSum()) {
+            return cycleComb1;
+        }
+        return cycleComb2;
+    }
+
+    private CycleComb getMaxCycleComb(CycleComb cycleComb1, CycleComb cycleComb2) {
+        if(cycleComb1 == null) {
+            return cycleComb2;
+        }
+        if(cycleComb2 == null) {
+            return cycleComb1;
+        }
+        if(cycleComb1.getMaxAgendaCombStatsSum() >= cycleComb2.getMaxAgendaCombStatsSum()) {
+            return cycleComb1;
+        }
+        return cycleComb2;
+    }
+
     public synchronized void addCycleComb(CycleComb cycleComb) {
         if(this.cycleComb == null) {
             this.cycleComb = cycleComb;
         }
-        minCycleComb = minCycleComb == null ? cycleComb : minCycleComb.getMinAgendaCombStatsSum() > cycleComb.getMinAgendaCombStatsSum() ? cycleComb : minCycleComb;
-        maxCycleComb = maxCycleComb == null ? minCycleComb : maxCycleComb.getMaxAgendaCombStatsSum() < cycleComb.getMaxAgendaCombStatsSum() ? minCycleComb : maxCycleComb;
+        minCycleComb = getMinCycleComb(minCycleComb, cycleComb);
+        maxCycleComb = getMaxCycleComb(maxCycleComb, cycleComb);
         countCycleComb++;
         sumAvgCycleCombValue+=cycleComb.getAvgAgendaCombStatsSum();
         if(cycleComb.getMinAgendaCombStatsSum() ==  minCycleComb.getMinAgendaCombStatsSum()) {

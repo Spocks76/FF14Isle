@@ -69,9 +69,9 @@ public enum Product {
     public static final Map<String, Product> productMap = Arrays.stream(values()).collect(Collectors.toMap(Product::getName, product -> product));
     public static final ProductCategoryTime categoryTimeMap = new ProductCategoryTime(values());
 
-    public static final Map<Product, CycleValuePattern> allNonexistentCycleValuePatternMap = Arrays.stream(values()).collect(Collectors.toMap(product -> product, product -> new CycleValuePattern(List.of(new CycleValue(Supply.NONEXISTENT, DemandShift.NONE)),1)));
-    public static final Map<Product, CycleValuePattern> allSufficientCycleValuePatternMap = Arrays.stream(values()).collect(Collectors.toMap(product -> product, product -> new CycleValuePattern(List.of(new CycleValue(Supply.SUFFICIENT, DemandShift.NONE)),1)));
-    public static final Map<Product, CycleValuePattern> allInsufficientCycleValuePatternMap = Arrays.stream(values()).collect(Collectors.toMap(product -> product, product -> new CycleValuePattern(List.of(new CycleValue(Supply.INSUFFICIENT, DemandShift.NONE)),1)));
+    public static final Map<Product, CycleValuePattern> allNonexistentCycleValuePatternMap = Arrays.stream(values()).collect(Collectors.toMap(product -> product, product -> new CycleValuePattern(List.of(new CycleValue(Supply.NONEXISTENT, DemandShift.NONE, -15)),1, "")));
+    public static final Map<Product, CycleValuePattern> allSufficientCycleValuePatternMap = Arrays.stream(values()).collect(Collectors.toMap(product -> product, product -> new CycleValuePattern(List.of(new CycleValue(Supply.SUFFICIENT, DemandShift.NONE, 0)),1, "")));
+    public static final Map<Product, CycleValuePattern> allInsufficientCycleValuePatternMap = Arrays.stream(values()).collect(Collectors.toMap(product -> product, product -> new CycleValuePattern(List.of(new CycleValue(Supply.INSUFFICIENT, DemandShift.NONE, -8)),1, "")));
 
     private final String name;
     private final int value;

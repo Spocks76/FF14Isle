@@ -15,6 +15,7 @@ public class Agenda {
     private final Groover groover;
     private final ProductLog productLog;
     private final StringBuffer productKey = new StringBuffer();
+    private final StringBuffer productKey2 = new StringBuffer();
     private final Map<Integer, Product> productMap = new HashMap<>();
 
     private final Map<Product, Integer> percentageMap = new HashMap<>();
@@ -22,13 +23,14 @@ public class Agenda {
         this.groover = groover;
         this.productLog = productLog;
     }
-    public void addProduct(Product product, Popularity popularity, Supply supply, int produced, int percentage) {
+    public void addProduct(Product product, Popularity popularity, int supplyValue, int produced, int percentage, String peak) {
         if(hour + product.getDuration() > 24) {
             return;
         }
-        var agendaProduct = new AgendaProduct(lastProduct, product, popularity, supply, groover.getGroove(hour), produced);
+        var agendaProduct = new AgendaProduct(lastProduct, product, popularity, supplyValue, groover.getGroove(hour), produced);
         productList.add(agendaProduct);
         productKey.append(product.getName()).append(", ");
+        productKey2.append(product.getName()).append("(").append(peak).append("), ");
         groover.addProduct(hour + product.getDuration() - 1);
         productLog.addProduct(hour + product.getDuration() - 1, product, agendaProduct.getEfficiencyBonus());
         productMap.put(hour, product);
