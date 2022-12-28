@@ -22,7 +22,7 @@ public class CycleCombStats {
         if(cycleComb2 == null) {
             return cycleComb1;
         }
-        if(cycleComb1.getMinAgendaCombStatsSum() <= cycleComb2.getMinAgendaCombStatsSum()) {
+        if(cycleComb1.getValue() <= cycleComb2.getValue()) {
             return cycleComb1;
         }
         return cycleComb2;
@@ -35,7 +35,7 @@ public class CycleCombStats {
         if(cycleComb2 == null) {
             return cycleComb1;
         }
-        if(cycleComb1.getMaxAgendaCombStatsSum() >= cycleComb2.getMaxAgendaCombStatsSum()) {
+        if(cycleComb1.getValue() >= cycleComb2.getValue()) {
             return cycleComb1;
         }
         return cycleComb2;
@@ -48,11 +48,11 @@ public class CycleCombStats {
         minCycleComb = getMinCycleComb(minCycleComb, cycleComb);
         maxCycleComb = getMaxCycleComb(maxCycleComb, cycleComb);
         countCycleComb++;
-        sumAvgCycleCombValue+=cycleComb.getAvgAgendaCombStatsSum();
-        if(cycleComb.getMinAgendaCombStatsSum() ==  minCycleComb.getMinAgendaCombStatsSum()) {
+        sumAvgCycleCombValue+=cycleComb.getValue();
+        if(cycleComb.getValue() ==  minCycleComb.getValue()) {
             countMinCycleComb++;
         }
-        if(cycleComb.getMaxAgendaCombStatsSum() == maxCycleComb.getMaxAgendaCombStatsSum()) {
+        if(cycleComb.getValue() == maxCycleComb.getValue()) {
             countMaxCycleComb++;
         }
     }
@@ -62,7 +62,7 @@ public class CycleCombStats {
     }
 
     public int getMaxValue() {
-        return cycleComb.getMaxAgendaCombStatsSum();
+        return maxCycleComb.getValue();
     }
 }
 

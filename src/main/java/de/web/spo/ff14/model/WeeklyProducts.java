@@ -9,9 +9,10 @@ import java.util.Map;
 @Getter
 @ToString
 public class WeeklyProducts {
-    private final Map<Product, Popularity> products = new HashMap<>();
 
-    public void addProduct(Product product, Popularity popularity) {
-        products.put(product, popularity);
+    private final Map<Product, WeeklyProduct> products = new HashMap<>();
+
+    public void addProduct(Product product, Popularity popularity, String peakKey) {
+        products.put(product, new WeeklyProduct(product, popularity, peakKey));
     }
 }

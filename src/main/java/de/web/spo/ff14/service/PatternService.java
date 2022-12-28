@@ -13,87 +13,113 @@ public class PatternService {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
-    private final List<CycleValues> cycleValuesList;
     private final Random rand = new Random(System.currentTimeMillis());
+
+    private final WeeklyProducts weeklyProducts;
+    private final Map<String, List<String>> peakKeyMapping;
+
+    private final Map<String, Map<String, Integer>> peakKeyPatternCount = new HashMap<>();
 
     private final Map<Product, Map<Integer, CycleValuePatternStats>> patternSupplyPercentageMap = new HashMap<>();
     private final Map<String, Map<Integer, Set<Product>>> productDistributionMap = new HashMap<>();
 
-    public PatternService(List<CycleValues> cycleValuesList) {
-        this.cycleValuesList = cycleValuesList;
+    public PatternService(WeeklyProducts weeklyProducts, Map<String, List<String>> peakKeyMapping) {
+        this.weeklyProducts = weeklyProducts;
+        this.peakKeyMapping = peakKeyMapping;
         this.calculatePatternStats();
     }
 
     private void calculatePatternStats() {
-        int maxCycle = Math.min(cycleValuesList.size(), 4);
-        var cycleValuePatternListMap = CycleValuePatternList.cycleValuePatternMap.get(maxCycle-1);
-        Product.productMap.values().forEach(product -> {
-            var cycleValuePatternList = getCycleValuePatternList(maxCycle, product, cycleValuePatternListMap);
+        peakKeyMapping.forEach((peakKey, mappingKeyList) -> {
+            var map = new HashMap<String, Integer>();
+            peakKeyPatternCount.put(peakKey, map);
+            mappingKeyList.forEach(peak -> map.put(peak, CycleValuePatternList.peakCycleValuePatternMap.get(peak).count()));
+        });
 
-            cycleValuePatternList.cycleValuePatternList().forEach(cycleValuePattern ->
+        weeklyProducts.getProducts().values().forEach(weeklyProduct -> {
+            if(CycleValuePatternList.peakCycleValuePatternMap.containsKey(weeklyProduct.peakKey())) {
+                peakKeyPatternCount.values().forEach(map -> {
+                    if(map.containsKey(weeklyProduct.peakKey())) {
+                        map.put(weeklyProduct.peakKey(), map.get(weeklyProduct.peakKey()) - 1);
+                    }
+                });
+                Stream.iterate(1, cycle -> cycle + 1).limit(7)
+                        .forEach(cycle -> {
+                            var cycleValuePattern = CycleValuePatternList.peakCycleValuePatternMap.get(weeklyProduct.peakKey());
+                            patternSupplyPercentageMap
+                                    .computeIfAbsent(weeklyProduct.product(), k -> new HashMap<>())
+                                    .computeIfAbsent(cycle, k -> new CycleValuePatternStats(weeklyProduct.peakKey()))
+                                    .addPattern(cycleValuePattern.cycleValueList().get(cycle - 1).supply(), 1);
+                            productDistributionMap
+                                    .computeIfAbsent(weeklyProduct.peakKey(), k -> new HashMap<>())
+                                    .computeIfAbsent(cycle, k -> new HashSet<>())
+                                    .add(weeklyProduct.product());
+                        });
+            }
+        });
+
+        weeklyProducts.getProducts().values().forEach(weeklyProduct -> {
+            if(!CycleValuePatternList.peakCycleValuePatternMap.containsKey(weeklyProduct.peakKey())) {
+                peakKeyMapping.get(weeklyProduct.peakKey()).forEach(peak -> {
+                    var cycleValuePattern = CycleValuePatternList.peakCycleValuePatternMap.get(peak);
                     Stream.iterate(1, cycle -> cycle + 1).limit(7)
                             .forEach(cycle -> {
                                 patternSupplyPercentageMap
-                                        .computeIfAbsent(product, k -> new HashMap<>())
-                                        .computeIfAbsent(cycle, k -> new CycleValuePatternStats(cycleValuePatternList.patternKey()))
-                                        .addPattern(cycleValuePattern.cycleValueList().get(cycle-1).supply());
+                                        .computeIfAbsent(weeklyProduct.product(), k -> new HashMap<>())
+                                        .computeIfAbsent(cycle, k -> new CycleValuePatternStats(weeklyProduct.peakKey()))
+                                        .addPattern(cycleValuePattern.cycleValueList().get(cycle - 1).supply(), peakKeyPatternCount.get(weeklyProduct.peakKey()).get(peak));
                                 productDistributionMap
-                                        .computeIfAbsent(cycleValuePatternList.patternKey(), k -> new HashMap<>())
+                                        .computeIfAbsent(weeklyProduct.peakKey(), k -> new HashMap<>())
                                         .computeIfAbsent(cycle, k -> new HashSet<>())
-                                        .add(product);
-                            })
-            );
+                                        .add(weeklyProduct.product());
+                            });
+                });
+            }
         });
     }
 
-    private Map<String, CycleValuePatternList> copyPatternMap(Map<String, CycleValuePatternList> cycleValuePatternListMap) {
-        var cycleValuePatternListMap2 = new HashMap<String, CycleValuePatternList>();
-        cycleValuePatternListMap.forEach((patternKey, cycleValuePatternList) -> cycleValuePatternListMap2.put(patternKey, new CycleValuePatternList(patternKey, new ArrayList<>(cycleValuePatternList.cycleValuePatternList()))));
-        return cycleValuePatternListMap2;
-    }
-
-    private CycleValuePatternList getCycleValuePatternList(int maxCycle, Product product, Map<String, CycleValuePatternList> cycleValuePatternListMap) {
-        var cycleValueList = new ArrayList<CycleValue>();
-        Stream.iterate(1, cycle -> cycle +1).limit(maxCycle).forEach(cycle -> cycleValueList.add(cycleValuesList.get(cycle-1).getCycleValueMap().get(product)));
-
-        var patternKey = CycleValuePattern.getPatternKeyUntil(maxCycle, cycleValueList);
-        var cycleValuePatternList = cycleValuePatternListMap.get(patternKey);
-        if(cycleValuePatternList == null || cycleValuePatternList.cycleValuePatternList().size() == 0) {
-            patternKey = CycleValuePattern.getAltPatternKeyUntil(maxCycle, cycleValueList);
-            cycleValuePatternList = cycleValuePatternListMap.get(patternKey);
-        }
-
-        if(cycleValuePatternList == null) {
-            LOGGER.error("Cannot find Pattern for product {} with pattern key {}", product.getName(), patternKey);
-        }
-        return cycleValuePatternList;
-    }
-
     public CycleValuePatternStats getCycleValuePatternStats(int cycle, Product product) {
-        var cycleValuePatternStats = patternSupplyPercentageMap.get(product).get(cycle);
-        var productCount = productDistributionMap.get(cycleValuePatternStats.getPatternKey()).get(cycle);
-        cycleValuePatternStats.setCount(productCount.size());
-        return cycleValuePatternStats;
+        return patternSupplyPercentageMap.get(product).get(cycle);
     }
 
-    public Map<Product, CycleValueStatsList> getRandomWeeklyCycleValuePatternMap() {
-        int maxCycle = Math.min(cycleValuesList.size(), 4);
+    private HashMap<String, Map<String, Integer>> clonePeakPatternCount() {
+        var peakKeyPatternCount2 = new HashMap<String, Map<String, Integer>>();
+        peakKeyPatternCount.forEach((peakKey,peakMap) -> peakKeyPatternCount2.put(peakKey, new HashMap<>(peakMap)));
+        return peakKeyPatternCount2;
+    }
 
-        var cycleValuePatternListMap = copyPatternMap(CycleValuePatternList.cycleValuePatternMap.get(maxCycle-1));
-
-        var cycleValuePatternMap = new HashMap<Product, CycleValueStatsList>();
+    public PeakCombCycles createRandomPeakCombCycles(int startCycle, Map<Product, Integer> productCountMap) {
+        var peakCombCycles = new PeakCombCycles(startCycle, productCountMap);
+        var peakKeyPatternCount = clonePeakPatternCount();
         var productList = new ArrayList<>(Product.productMap.values());
         while(productList.size() > 0) {
             var product = productList.get(rand.nextInt(productList.size()));
             productList.remove(product);
 
-            var cycleValuePatternList = getCycleValuePatternList(maxCycle, product, cycleValuePatternListMap);
+            String peak;
+            var weeklyProduct = weeklyProducts.getProducts().get(product);
+            if(CycleValuePatternList.peakCycleValuePatternMap.containsKey(weeklyProduct.peakKey())) {
+                peak = weeklyProduct.peakKey();
+            } else {
+                var peakCountMap = peakKeyPatternCount.get(weeklyProduct.peakKey());
+                var peakList = new ArrayList<>(peakCountMap.keySet());
+                peak = peakList.get(rand.nextInt(peakList.size()));
+                peakCountMap.put(peak, peakCountMap.get(peak) - 1);
+                if(peakCountMap.get(peak) == 0) {
+                    peakCountMap.remove(peak);
+                }
+            }
 
-            var cycleValuePattern = cycleValuePatternList.cycleValuePatternList().get(rand.nextInt(cycleValuePatternList.cycleValuePatternList().size()));
-            cycleValuePatternList.cycleValuePatternList().remove(cycleValuePattern);
-            cycleValuePatternMap.put(product, cycleValuePattern.getCycleValueStatsList(cycleValuePatternList.patternKey()));
+            peakCombCycles.getProductPeakMap().put(product, peak);
+            var cycleValuePattern = CycleValuePatternList.peakCycleValuePatternMap.get(peak);
+            var cycleValuePatternStatsMap = patternSupplyPercentageMap.get(product);
+
+            Stream.iterate(startCycle, cycleNr -> cycleNr + 1).limit(8-startCycle).forEach(cycleNr -> {
+                var cycle = peakCombCycles.getCycles().getCycle(cycleNr);
+                cycle.getProductCycleValueMap().put(product, new ProductCycleValue(product, cycleValuePattern.cycleValueList().get(cycleNr-1), cycleValuePatternStatsMap.get(cycleNr)));
+            });
         }
-        return cycleValuePatternMap;
+        return peakCombCycles;
     }
 }
 

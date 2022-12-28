@@ -1,11 +1,12 @@
 package de.web.spo.ff14.model;
 
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public record CycleValuePatternList(String patternKey, List<CycleValuePattern> cycleValuePatternList) {
-    public static List<Map<String, CycleValuePatternList>> cycleValuePatternMap = List.of(new HashMap<>(), new HashMap<>(), new HashMap<>(), new HashMap<>());
-    public static Map<String, Map<Integer, CycleValuePatternStats>> patternSupplyPercentageMap = new HashMap<>();
+
+    public static Map<String, CycleValuePattern> peakCycleValuePatternMap;
 
     static {
         List<CycleValuePattern> cycleValuePatterns = List.of(
@@ -119,27 +120,7 @@ public record CycleValuePatternList(String patternKey, List<CycleValuePattern> c
                 ), 5, "7W")
         );
 
-
-        cycleValuePatterns.forEach(cycleValuePattern -> {
-            for (int i = 0; i < cycleValuePattern.count(); i++) {
-                for (int cycleIndex = 0; cycleIndex < 4; cycleIndex++) {
-                    cycleValuePatternMap.get(cycleIndex).computeIfAbsent(CycleValuePattern.getPatternKeyUntil(cycleIndex + 1, cycleValuePattern.cycleValueList()), patternKey -> new CycleValuePatternList(patternKey, new ArrayList<>())).cycleValuePatternList().add(cycleValuePattern);
-                }
-            }
-        });
-
-        cycleValuePatternMap
-                .forEach(cycleValuePatternListMap -> cycleValuePatternListMap
-                        .forEach((patternKey, cycleValuePatternList1) -> cycleValuePatternList1.cycleValuePatternList()
-                                .forEach(cycleValuePattern -> Stream.iterate(1, cycle -> cycle + 1).limit(7)
-                                        .forEach(cycle -> patternSupplyPercentageMap
-                                                .computeIfAbsent(patternKey, k -> new HashMap<>())
-                                                .computeIfAbsent(cycle, k -> new CycleValuePatternStats(patternKey))
-                                                .addPattern(cycleValuePattern.cycleValueList().get(cycle-1).supply())
-                                        ))
-                        )
-                );
-
+        peakCycleValuePatternMap = cycleValuePatterns.stream().collect(Collectors.toMap(CycleValuePattern::peak, cycleValuePattern -> cycleValuePattern));
     }
 
 }

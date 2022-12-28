@@ -6,29 +6,31 @@ import java.util.Hashtable;
 import java.util.Map;
 
 public class CycleValuePatternStats {
+
     @Getter
-    private final String patternKey;
+    private final String peakKey;
     private int count = 0;
     private final Map<Supply, Integer> supplyCounterMap = new Hashtable<>(Map.of(Supply.NONEXISTENT, 0, Supply.INSUFFICIENT, 0, Supply.SUFFICIENT, 0));
 
-    public CycleValuePatternStats(String patternKey) {
-        this.patternKey = patternKey;
+    public CycleValuePatternStats(String peakKey) {
+        this.peakKey = peakKey;
     }
 
-    public void addPattern(Supply supply) {
-        count++;
+
+    public void addPattern(Supply supply, int cnt) {
+        count+=cnt;
         switch(supply) {
             case NONEXISTENT -> {
-                supplyCounterMap.merge(Supply.NONEXISTENT, 1, Integer::sum);
-                supplyCounterMap.merge(Supply.INSUFFICIENT, 1, Integer::sum);
-                supplyCounterMap.merge(Supply.SUFFICIENT, 1, Integer::sum);
+                supplyCounterMap.merge(Supply.NONEXISTENT, cnt, Integer::sum);
+                supplyCounterMap.merge(Supply.INSUFFICIENT, cnt, Integer::sum);
+                supplyCounterMap.merge(Supply.SUFFICIENT, cnt, Integer::sum);
             }
             case INSUFFICIENT -> {
-                supplyCounterMap.merge(Supply.INSUFFICIENT, 1, Integer::sum);
-                supplyCounterMap.merge(Supply.SUFFICIENT, 1, Integer::sum);
+                supplyCounterMap.merge(Supply.INSUFFICIENT, cnt, Integer::sum);
+                supplyCounterMap.merge(Supply.SUFFICIENT, cnt, Integer::sum);
             }
             case SUFFICIENT -> {
-                supplyCounterMap.merge(Supply.SUFFICIENT, 1, Integer::sum);
+                supplyCounterMap.merge(Supply.SUFFICIENT, cnt, Integer::sum);
             }
         }
 

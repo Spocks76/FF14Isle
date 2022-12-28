@@ -3,35 +3,41 @@ package de.web.spo.ff14.model;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 @Getter
 @ToString
 public class CycleComb {
-    private final Map<Product, CycleValueStatsList> cycleValuePatternMap;
-    private Map<Product, Integer> productCountMap;
+    private Map<Product, Integer> lastProductCountMap = new HashMap<>();
 
-    private final AgendaCombStats[] agendaCombStatsCycles = new AgendaCombStats[7];
+    private final Map<Integer, AgendaComb> agendaCombMap = new HashMap<>();
 
     private String key;
+    private int value = 0;
+    private int lastGroove;
+    private boolean rest;
 
-    private int minAgendaCombStatsSum = 0;
-
-    private int avgAgendaCombStatsSum = 0;
-    private int maxAgendaCombStatsSum = 0;
-
-    public CycleComb(Map<Product, CycleValueStatsList> cycleValuePatternMap, Map<Product, Integer> productCountMap) {
-        this.cycleValuePatternMap = cycleValuePatternMap;
-        this.productCountMap = new Hashtable<>(productCountMap);
+    public CycleComb(CycleComb cycleComb) {
+        cycleComb.agendaCombMap.values().forEach(this::addAgendaComb);
+        this.rest = cycleComb.rest;
     }
 
-    public void addAgendaCombStats(int cycle, AgendaCombStats agendaCombStats) {
-        agendaCombStatsCycles[cycle - 1] = agendaCombStats;
-        minAgendaCombStatsSum += agendaCombStats.getMinValue();
-        avgAgendaCombStatsSum += agendaCombStats.getAvgValue();
-        maxAgendaCombStatsSum += agendaCombStats.getMaxValue();
-        this.productCountMap = agendaCombStats.getAgendaComb().productCountMap();
-        this.key = Arrays.stream(agendaCombStatsCycles).map(agendaCombStats1 -> Optional.ofNullable(agendaCombStats1).orElse(new AgendaCombStats()).getKey()).collect(Collectors.joining("| "));
+    public CycleComb(AgendaComb agendaComb, boolean rest) {
+        this.addAgendaComb(agendaComb);
+        this.rest = rest;
+    }
+
+    public void addAgendaComb(AgendaComb agendaComb) {
+        this.lastProductCountMap = agendaComb.productCountMap();
+        if(key == null) {
+            key = agendaComb.getKey();
+        } else {
+            this.key+="| " + agendaComb.getKey();
+        }
+        this.value += agendaComb.getValue();
+        this.lastGroove = agendaComb.groover().getLastGroove();
+        this.rest = this.rest || agendaComb.isRest();
+        agendaCombMap.put(agendaComb.cycle().getCycle(), agendaComb);
     }
 }

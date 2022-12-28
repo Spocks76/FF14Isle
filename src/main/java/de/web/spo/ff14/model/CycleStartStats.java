@@ -2,10 +2,7 @@ package de.web.spo.ff14.model;
 
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Hashtable;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 public class CycleStartStats {
@@ -36,8 +33,10 @@ public class CycleStartStats {
     public void truncMap(int truncSize) {
         if(cycleCombStatsMap.size() > truncSize) {
             var cnt = cycleCombStatsMap.size() - truncSize;
-            new ArrayList<>(cycleCombStatsMap.values()).stream().sorted(Comparator.comparing(CycleCombStats::getMaxValue))
-                    .limit(cnt).forEach(cycleCombStats -> cycleCombStatsMap.remove(cycleCombStats.getCycleComb().getKey()));
+            try {
+                new ArrayList<>(cycleCombStatsMap.values()).stream().sorted(Comparator.comparing(CycleCombStats::getMaxValue))
+                        .limit(cnt).forEach(cycleCombStats -> cycleCombStatsMap.remove(cycleCombStats.getCycleComb().getKey()));
+            } catch (ConcurrentModificationException ignored) {}
         }
     }
 
