@@ -19,7 +19,7 @@ public class CycleService {
         var cycle = peakCombCycles.getCycles().getCycle(cycleNr);
         cycle.setCycleCombList(cycle.getAgendaList().stream().map(agenda -> new CycleComb(agendaService.createAgendaComb(cycle, peakCombCycles.getProductPeakMap(), new HashMap<>(peakCombCycles.getProductCountMap()), agenda, groove), restDayDone)).collect(Collectors.toList()));
         if(!restDayDone) {
-            cycle.getCycleCombList().add(new CycleComb(new AgendaComb(cycle, new Groover(groove), null, null, null, new HashMap<>(peakCombCycles.getProductCountMap())), false));
+            cycle.getCycleCombList().add(new CycleComb(new AgendaComb(cycle, new Groover(groove), null, null, null, new HashMap<>(peakCombCycles.getProductCountMap())), true));
         }
     }
 

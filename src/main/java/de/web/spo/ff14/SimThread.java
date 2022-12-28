@@ -45,7 +45,7 @@ public class SimThread implements Runnable{
 
         var productCountMap = new Hashtable<Product, Integer>();
         //var productCountMap =  Map.of(Product.FIRESAND, 9, Product.GARNET_RAPIER, 12, Product.SQUID_INK, 9, Product.SHARK_OIL, 12, Product.CORN_FLAKES, 9, Product.PICKLED_RADISH, 12);
-        var cycleStart = 2;
+        var cycleStart = 3;
 
         var randomPeakCombCyclesMap = Stream.generate(() -> patternService.createRandomPeakCombCycles(cycleStart, productCountMap))
                 .limit(100)

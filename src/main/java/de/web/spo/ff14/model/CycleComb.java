@@ -21,6 +21,10 @@ public class CycleComb {
     public CycleComb(CycleComb cycleComb) {
         cycleComb.agendaCombMap.values().forEach(this::addAgendaComb);
         this.rest = cycleComb.rest;
+        this.lastGroove = cycleComb.lastGroove;
+        this.key = cycleComb.key;
+        this.value = cycleComb.value;
+        this.lastProductCountMap = cycleComb.lastProductCountMap;
     }
 
     public CycleComb(AgendaComb agendaComb, boolean rest) {

@@ -43,7 +43,7 @@ public class SpringBootFF14Isle implements CommandLineRunner {
 
         Map<String, CycleStartStats> cycleStartStatsMap = new Hashtable<>();
 
-        var threadCount = 15;
+        var threadCount = 10;
         CountDownLatch latch = new CountDownLatch(threadCount);
         Stream.iterate(1, threadNumber -> threadNumber + 1)
                 .limit(threadCount)
@@ -58,9 +58,9 @@ public class SpringBootFF14Isle implements CommandLineRunner {
                     System.out.println("===> " + cycleStartStats.getMaxValue() + ", " +cycleStartStats.getAvgValue() + ", " + cycleStartStats.getAgendaCombKey());
                     cycleStartStats.getCycleCombStatsMap().values().stream().sorted(Comparator.comparing(CycleCombStats::getMaxValue).reversed())
                             .limit(10)
-                            .forEach(cycleCombStats -> System.out.println(cycleCombStats.getCountCycleComb() + " : " + cycleCombStats.getAvgValue() + " : " + cycleCombStats.getCycleComb().getLastGroove() + " " +
+                            .forEach(cycleCombStats -> System.out.println(cycleCombStats.getCountCycleComb() + " : " + cycleCombStats.getMaxValue()  + " " +
                                     cycleCombStats.getCycleComb().getAgendaCombMap().values().stream()
-                                    .map(agendaComb -> agendaComb.getPercentage() + "%:" + agendaComb.getValue()).toList()
+                                    .map(agendaComb -> agendaComb.getPercentage() + "%:" + agendaComb.getValue()+":"+agendaComb.groover().getLastGroove()).toList()
                                     + " --> " + cycleCombStats.getCycleComb().getKey()
                             ));
                 });
