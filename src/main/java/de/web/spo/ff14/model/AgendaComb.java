@@ -1,45 +1,64 @@
 package de.web.spo.ff14.model;
 
-import java.util.Hashtable;
-import java.util.Map;
+import lombok.Getter;
+
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public record AgendaComb(Cycle cycle, Groover groover, Agenda agenda1, Agenda agenda2, Agenda agenda3, Map<Product, Integer> productCountMap) {
+public class AgendaComb {
 
-    public int getValue() {
-        if(isRest()) {
-            return 0;
-        }
-        return agenda1().getValue() + agenda2.getValue() + agenda3().getValue();
+    private List<Agenda> agendaList = Arrays.asList(new Agenda[7]);
+    @Getter
+    private String productStr;
+
+    public AgendaComb() {}
+
+    public AgendaComb(AgendaComb agendaComb) {
+        agendaList = new ArrayList<>(agendaComb.agendaList);
+        productStr = agendaComb.productStr;
     }
 
-    public String getKey() {
-        if(isRest()) {
-            return "REST";
-        }
-        return agenda1().getProductKey().toString()+agenda2().getProductKey().toString()+agenda3.getProductKey().toString();
+    public void addAgenda(int cycle, Agenda agenda) {
+        agendaList.set(cycle - 1 , agenda);
+        productStr = agendaList.stream().filter(Objects::nonNull).map(Agenda::getProductStr).collect(Collectors.joining(","));
     }
 
-    public String getKey2() {
-        if(isRest()) {
-            return "REST";
-        }
-        return agenda1().getProductKey2().toString();
+    public Agenda getAgenda(int cycle) {
+        return agendaList.get(cycle - 1);
     }
 
-    public boolean isRest() {
-        return agenda1 == null;
+    public AgendaCombResult calculateProduct(WeeklyProducts weeklyProducts, ProductList products, int startCycle) {
+        AtomicInteger minValue = new AtomicInteger();
+        AtomicInteger medianValue = new AtomicInteger();
+        AtomicInteger maxValue = new AtomicInteger();
+
+        AtomicInteger groove = new AtomicInteger(0);
+        AtomicReference<Map<Product, Integer>> productProducedMap = new AtomicReference<>(new HashMap<>());
+        List<AgendaResult> agendaResults = new ArrayList<>();
+        Stream.iterate(1, cycle -> cycle + 1).limit(7).filter(cycle -> getAgenda(cycle) != null).forEach(cycle ->  {
+            var agendaResult = getAgenda(cycle).calculateProduct(weeklyProducts, products, productProducedMap.get(), cycle, groove.get());
+            var agendaResult2 = getAgenda(cycle).calculateProduct(weeklyProducts, products, productProducedMap.get(), cycle, 0);
+            var treshold = 3250;
+            if(cycle == startCycle && agendaResult.agenda().getMaxDuration() > 4) {
+                treshold = 3600;
+            }
+            if(cycle == startCycle && agendaResult.agenda().getMaxDuration() > 6) {
+                treshold = 3750;
+            }
+            if(agendaResult2.maxValue()>treshold) {
+                agendaResults.add(agendaResult);
+                minValue.set(minValue.get() + agendaResult.minValue());
+                medianValue.set(medianValue.get() + agendaResult.medianValue());
+                maxValue.set(maxValue.get() + agendaResult.maxValue());
+                groove.set(agendaResult.grooveAfter());
+                productProducedMap.set(agendaResult.productProducedMap());
+            }
+        });
+
+        return new AgendaCombResult(this, minValue.get(), medianValue.get(), maxValue.get(), productProducedMap.get(), groove.get(), agendaResults.stream().map(AgendaResult::toString).collect(Collectors.joining(", ")));
     }
 
-    public int getPercentage() {
-        if(isRest()) {
-            return 100;
-        }
-        var percentageMap = new Hashtable<>(agenda1.getPercentageMap());
-        percentageMap.putAll(agenda2.getPercentageMap());
-        percentageMap.putAll(agenda3.getPercentageMap());
-        AtomicReference<Double> percentage = new AtomicReference<>((double) 1);
-        percentageMap.values().forEach(p -> percentage.set(percentage.get() * p / 100.0));
-        return (int) Math.round(percentage.get() * 100);
-    }
 }

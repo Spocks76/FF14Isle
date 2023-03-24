@@ -15,4 +15,8 @@ public class WeeklyProducts {
     public void addProduct(Product product, Popularity popularity, String peakKey) {
         products.put(product, new WeeklyProduct(product, popularity, peakKey));
     }
+
+    public WeeklyProduct get(Product key) {
+        return products.get(key);
+    }
 }

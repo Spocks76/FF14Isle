@@ -1,4 +1,4 @@
 package de.web.spo.ff14.model;
 
-public record CycleValue(Supply supply, DemandShift demandShift, int supplyValue) {
+public record CycleValue(int cycle, Supply supply, DemandShift demandShift, int supplyValue) {
 }

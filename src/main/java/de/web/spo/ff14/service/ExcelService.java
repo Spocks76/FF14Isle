@@ -22,7 +22,7 @@ public class ExcelService {
     @Bean
     public WeeklyProducts weeklyProducts() {
         var weeklyProducts = new WeeklyProducts();
-        for(var rowIndex = 4; rowIndex < 54; rowIndex++ ) {
+        for(var rowIndex = 4; rowIndex < 64; rowIndex++ ) {
             var row = excelSheetCurrentWeek.getRow(rowIndex);
             var peakKey = row.getCell(1).getStringCellValue();
             var productName = row.getCell(2).getStringCellValue();
@@ -43,7 +43,7 @@ public class ExcelService {
         for(var cycleIndex = 0; cycleIndex < maxCycle; cycleIndex++) {
             var cycleValues = new CycleValues();
             cycleValuesList.add(cycleValues);
-            for(var rowIndex = 4; rowIndex < 54; rowIndex++ ) {
+            for(var rowIndex = 4; rowIndex < 64; rowIndex++ ) {
                 var row = excelSheetCurrentWeek.getRow(rowIndex);
                 var productName = row.getCell(2).getStringCellValue();
                 var supplyName = row.getCell(4 + cycleIndex * 2).getStringCellValue();
@@ -51,7 +51,7 @@ public class ExcelService {
                 var product = Product.productMap.get(productName);
                 var supply = Supply.supplyMap.get(supplyName);
                 var shift = DemandShift.demandShiftMap.get(shiftName);
-                cycleValues.addCycleValue(product, new CycleValue(supply, shift, 0));
+                cycleValues.addCycleValue(product, new CycleValue(0, supply, shift, 0));
             }
         }
         return cycleValuesList;
